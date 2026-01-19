@@ -87,11 +87,23 @@ export interface NotificationEvent {
 }
 
 export function parseNotificationEvent(messageId: string, inputEvent: string): NotificationEvent {
-    const event = JSON.parse(inputEvent) as {
+    const parsed = JSON.parse(inputEvent)
+
+    // Handle SNS envelope - SNS wraps the actual SES event in a "Message" field
+    let event: {
         eventType: keyof typeof awsToMailgunType
         mail: { messageId: string, timestamp: Date }
         open?: { timestamp: Date }
     }
+
+    if (parsed.Type === "Notification" && parsed.Message) {
+        // This is an SNS envelope, extract the actual SES event from Message field
+        event = JSON.parse(parsed.Message)
+    } else {
+        // Direct SES event format
+        event = parsed
+    }
+
     return {
         notificationId: messageId,
         type: String(awsToMailgunType[event.eventType]).toLocaleLowerCase(),
