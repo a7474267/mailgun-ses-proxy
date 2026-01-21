@@ -12,7 +12,10 @@ export async function processSystemEmailEvents(response: ReceiveMessageCommandOu
         if (msg.Body && msg.MessageId) {
             try {
                 const result = parseNotificationEvent(msg.MessageId, msg.Body)
-                await saveSystemEmailEvent(result)
+                // Skip non-SES events (e.g., SubscriptionConfirmation, UnsubscribeConfirmation)
+                if (result) {
+                    await saveSystemEmailEvent(result)
+                }
             } catch (e) {
                 log.error(e)
             }
