@@ -86,8 +86,13 @@ export interface NotificationEvent {
     raw: any
 }
 
-export function parseNotificationEvent(messageId: string, inputEvent: string): NotificationEvent {
+export function parseNotificationEvent(messageId: string, inputEvent: string): NotificationEvent | null {
     const parsed = JSON.parse(inputEvent)
+
+    // Skip non-notification SNS messages (SubscriptionConfirmation, UnsubscribeConfirmation)
+    if (parsed.Type && parsed.Type !== "Notification") {
+        return null
+    }
 
     // Handle SNS envelope - SNS wraps the actual SES event in a "Message" field
     let event: {
@@ -102,6 +107,11 @@ export function parseNotificationEvent(messageId: string, inputEvent: string): N
     } else {
         // Direct SES event format
         event = parsed
+    }
+
+    // Validate that the event has required fields
+    if (!event.mail?.messageId) {
+        return null
     }
 
     return {

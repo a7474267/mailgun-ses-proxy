@@ -86,7 +86,10 @@ export async function processNewsletterEmailEvents(response: ReceiveMessageComma
         if (msg.Body && msg.MessageId) {
             try {
                 const result = parseNotificationEvent(msg.MessageId, msg.Body)
-                await saveNewsletterNotification(result)
+                // Skip non-SES events (e.g., SubscriptionConfirmation, UnsubscribeConfirmation)
+                if (result) {
+                    await saveNewsletterNotification(result)
+                }
             } catch (e) {
                 log.error(e)
             }
