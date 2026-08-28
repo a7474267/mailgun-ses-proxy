@@ -63,6 +63,21 @@ export function saveNewsletterNotification(event: NotificationEvent) {
     })
 }
 
+/**
+ * Returns the set of recipient addresses that were already handled (sent or
+ * recorded as failed) for a newsletter batch. Used to make batch processing
+ * idempotent: SQS is at-least-once, so the same batch can be delivered again
+ * (visibility timeout expired, another consumer touched it, ...). Recipients
+ * in this set must not receive the email a second time.
+ */
+export async function getProcessedRecipientsForBatch(newsletterBatchId: string): Promise<Set<string>> {
+    const [sent, failed] = await Promise.all([
+        prisma.newsletterMessages.findMany({ where: { newsletterBatchId }, select: { toEmail: true } }),
+        prisma.newsletterErrors.findMany({ where: { newsletterBatchId }, select: { toEmail: true } }),
+    ])
+    return new Set([...sent, ...failed].map((r) => r.toEmail))
+}
+
 export async function getNewsletterContent(id: string) {
     const result = await prisma.newsletterBatch.findUnique({
         where: { id },

@@ -107,6 +107,8 @@ NEWSLETTER_CONFIGURATION_SET_NAME=newsletter-configuration-set
 # SQS Configuration
 SQS_REGION="us-east-1"
 NEWSLETTER_QUEUE="https://sqs.us-east-1.amazonaws.com/123456789012/newsletter-queue"
+# Optional: seconds a newsletter batch stays hidden from other consumers while being sent (default 900)
+NEWSLETTER_VISIBILITY_TIMEOUT=900
 NEWSLETTER_NOTIFICATION_QUEUE="https://sqs.us-east-1.amazonaws.com/123456789012/newsletter-notification-queue"
 TRANSACTIONAL_NOTIFICATION_QUEUE="https://sqs.us-east-1.amazonaws.com/123456789012/system-notification-queue"
 
