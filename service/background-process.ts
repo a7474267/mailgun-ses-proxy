@@ -8,6 +8,14 @@ import logger from "../lib/core/logger"
 const log = logger.child({ service: "backgroundProcess" })
 
 /**
+ * How long a newsletter batch stays hidden from other consumers while it is
+ * being sent. Sending is one SES request per recipient, so a batch of a few
+ * hundred recipients easily takes longer than the previous hard-coded 30s;
+ * once the timeout expired the batch was delivered again and sent twice.
+ */
+const NEWSLETTER_VISIBILITY_TIMEOUT = parseInt(process.env.NEWSLETTER_VISIBILITY_TIMEOUT || "900")
+
+/**
  *  This method process all the newsletter messages in the queue
  */
 export async function processNewsletterQueue() {
@@ -17,7 +25,7 @@ export async function processNewsletterQueue() {
         MessageSystemAttributeNames: [MessageSystemAttributeName.SentTimestamp,
         MessageSystemAttributeName.ApproximateReceiveCount],
         QueueUrl: QUEUE_URL.NEWSLETTER,
-        VisibilityTimeout: 30,
+        VisibilityTimeout: NEWSLETTER_VISIBILITY_TIMEOUT,
         WaitTimeSeconds: 20,
     }
     const command = new ReceiveMessageCommand(input)
